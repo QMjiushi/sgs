@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三国杀武将库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+
+        /* 页面标题 */
+        .page-title {
+            text-align: center;
+            font-size: 32px;
+            margin: 20px 0 20px;
+            color: #f6d068;
+            text-shadow: 0 0 10px rgba(246, 208, 104, 0.5);
+        }
+
+        /* 搜索筛选栏 */
+        .search-bar {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            width: 260px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            background: #2d2d2d;
+            color: #fff;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            background: #2d2d2d;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* 武将容器 - 网格布局 */
+        .hero-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 武将卡片样式 */
+        .hero-card {
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            border: 2px solid #333;
+        }
+
+        .hero-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 武将头像 */
+        .hero-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        /* 武将信息 */
+        .hero-info {
+            padding: 10px;
+        }
+
+        .hero-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .hero-faction {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .hero-server {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            background: #444;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        /* 势力颜色 */
+        .wei { background: #2979ff; }
+        .shu { background: #ff3d3d; }
+        .wu { background: #00c853; }
+        .qun { background: #9c27b0; }
+        .jin { background: #ff9800; }
+        .shen { background: #f5f5f5; color: #000; }
+        .mo { background: #000000; border: 1px solid red; color: red; }
+
+        .hero-hp {
+            font-size: 14px;
+            color: #ffcc00;
+        }
+
+        /* 弹窗背景 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 弹窗内容 */
+        .modal-content {
+            background: #222;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            border: 3px solid #f6d068;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        /* 弹窗内武将信息 */
+        .modal-hero-header {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .modal-img {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .modal-basic {
+            flex: 1;
+        }
+
+        .modal-name {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .modal-faction {
+            font-size: 16px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .modal-server {
+            font-size: 14px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #444;
+            color: #fff;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .modal-hp {
+            font-size: 18px;
+            color: #ffcc00;
+        }
+
+        /* 技能样式 */
+        .skill-box {
+            margin-top: 15px;
+        }
+
+        .skill-title {
+            color: #f6d068;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .skill-desc {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="page-title">三国杀 全武将库</h1>
+
+<!-- 搜索筛选栏 -->
+<div class="search-bar">
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索姓名/拼音（如：cc 曹操）">
+    <select class="filter-select" id="filterFaction">
+        <option value="all">全部势力</option>
+        <option value="wei">魏</option>
+        <option value="shu">蜀</option>
+        <option value="wu">吴</option>
+        <option value="qun">群</option>
+        <option value="jin">晋</option>
+        <option value="shen">神</option>
+        <option value="mo">魔</option>
+    </select>
+    <select class="filter-select" id="filterServer">
+        <option value="all">全部服务器</option>
+        <option value="online">Online</option>
+        <option value="mobile">Mobile</option>
+        <option value="yjcm">一将成名</option>
+        <option value="线下">线下</option>
+        <option value="其他">其他</option>
+    </select>
+</div>
+
+<!-- 武将网格 -->
+<div class="hero-container" id="heroList"></div>
+
+<!-- 详情弹窗 -->
+<div class="modal" id="heroModal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <div class="modal-hero-header">
+            <img src="" class="modal-img" id="modalImg">
+            <div class="modal-basic">
+                <h2 class="modal-name" id="modalName"></h2>
+                <span class="modal-faction" id="modalFaction"></span>
+                <span class="modal-server" id="modalServer"></span>
+                <div class="modal-hp" id="modalHp"></div>
+            </div>
+        </div>
+        <div class="skill-box" id="modalSkills"></div>
+    </div>
+</div>
+
+<script>
+    // 拼音映射表
+    const pinyinMap = {
+        '曹操': 'cc', '刘备': 'lb', '孙权': 'sq', '华佗': 'ht', '郭嘉': 'gj',
+        '诸葛亮': 'zgl', '神曹操': 'scc', '魔吕布': 'mlb', '司马昭': 'szm'
+    };
+
+    // 武将数据（新增：server服务器 + 新势力）
+    const heroes = [
+        {
+            name: "曹操",
+            faction: "魏",
+            server: "online",
+            hp: "4勾玉",
+            img: "https://img2.baidu.com/it/u=3532334509,210099302&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "奸雄", desc: "当你受到伤害后，你可以获得对你造成伤害的牌。" },
+                { title: "护驾", desc: "主公技，当你需要使用或打出【闪】时，你可以令其他魏势力角色选择是否打出【闪】。" }
+            ]
+        },
+        {
+            name: "刘备",
+            faction: "蜀",
+            server: "online",
+            hp: "4勾玉",
+            img: "https://img0.baidu.com/it/u=3462030700,3992101100&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "仁德", desc: "出牌阶段，你可以将任意张手牌交给其他角色，若你于此阶段以此法给出的牌首次达到两张或更多，你回复1点体力。" },
+                { title: "激将", desc: "主公技，当你需要使用或打出【杀】时，你可以令其他蜀势力角色选择是否打出【杀】。" }
+            ]
+        },
+        {
+            name: "孙权",
+            faction: "吴",
+            server: "online",
+            hp: "4勾玉",
+            img: "https://img2.baidu.com/it/u=2320366129,4219424700&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "制衡", desc: "出牌阶段限一次，你可以弃置任意张牌，然后摸等量的牌。" },
+                { title: "救援", desc: "主公技，其他吴势力角色对自己使用【桃】时，你可以让该角色回复1点体力。" }
+            ]
+        },
+        {
+            name: "华佗",
+            faction: "群",
+            server: "mobile",
+            hp: "3勾玉",
+            img: "https://img1.baidu.com/it/u=2167133210,1119182824&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "青囊", desc: "出牌阶段限一次，你可以弃置一张手牌，令一名角色回复1点体力。" },
+                { title: "急救", desc: "你的回合外，你可以将一张红色牌当【桃】使用。" }
+            ]
+        },
+        {
+            name: "郭嘉",
+            faction: "魏",
+            server: "一将成名",
+            hp: "3勾玉",
+            img: "https://img0.baidu.com/it/u=1101451332,2592331069&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "天妒", desc: "当你的判定牌生效后，你可以获得之。" },
+                { title: "遗计", desc: "当你受到伤害后，你可以摸两张牌，然后将两张牌交给其他角色。" }
+            ]
+        },
+        {
+            name: "诸葛亮",
+            faction: "蜀",
+            server: "线下",
+            hp: "3勾玉",
+            img: "https://img0.baidu.com/it/u=102215678,4011617600&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "观星", desc: "准备阶段，你可以观看牌堆顶的X张牌（X为全场角色数），然后将其中任意数量的牌置于牌堆顶，其余置于牌堆底。" },
+                { title: "空城", desc: "若你没有手牌，你不能成为【杀】或【决斗】的目标。" }
+            ]
+        },
+        // 新增：神、魔、晋势力武将
+        {
+            name: "神曹操",
+            faction: "shen",
+            server: "其他",
+            hp: "3勾玉",
+            img: "https://img0.baidu.com/it/u=102215678,4011617600&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "归心", desc: "当你受到1点伤害后，你可以获得所有其他角色区域里的一张牌。" },
+                { title: "飞影", desc: "锁定技，其他角色与你的距离+1。" }
+            ]
+        },
+        {
+            name: "魔吕布",
+            faction: "mo",
+            server: "线下",
+            hp: "6勾玉",
+            img: "https://img0.baidu.com/it/u=102215678,4011617600&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "狂暴", desc: "锁定技，游戏开始时，你获得2个暴怒标记。" },
+                { title: "无谋", desc: "锁定技，你使用锦囊牌需消耗1个暴怒标记，否则不能使用。" }
+            ]
+        },
+        {
+            name: "司马昭",
+            faction: "jin",
+            server: "online",
+            hp: "4勾玉",
+            img: "https://img0.baidu.com/it/u=102215678,4011617600&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+            skills: [
+                { title: "昭烈", desc: "出牌阶段限一次，你可以摸两张牌，然后对一名角色造成1点伤害。" }
+            ]
+        }
+    ];
+
+    // 渲染列表 + 筛选
+    const heroList = document.getElementById('heroList');
+    const searchInput = document.getElementById('searchInput');
+    const filterFaction = document.getElementById('filterFaction');
+    const filterServer = document.getElementById('filterServer');
+
+    function renderHeroes() {
+        const keyword = searchInput.value.toLowerCase().trim();
+        const faction = filterFaction.value;
+        const server = filterServer.value;
+
+        const filtered = heroes.filter(hero => {
+            const py = pinyinMap[hero.name] || '';
+            const matchSearch = !keyword || 
+                hero.name.includes(keyword) || 
+                py.includes(keyword);
+            
+            const matchFaction = faction === 'all' || hero.faction === faction;
+            const matchServer = server === 'all' || hero.server === server;
+
+            return matchSearch && matchFaction && matchServer;
+        });
+
+        heroList.innerHTML = '';
+        filtered.forEach(hero => {
+            const card = document.createElement('div');
+            card.className = 'hero-card';
+            card.innerHTML = `
+                <img src="${hero.img}" class="hero-img">
+                <div class="hero-info">
+                    <div class="hero-name">${hero.name}</div>
+                    <span class="hero-faction ${hero.faction.toLowerCase()}">${hero.faction=='shen'?'神':hero.faction=='mo'?'魔':hero.faction=='jin'?'晋':hero.faction}</span>
+                    <div class="hero-server">${hero.server}</div>
+                    <div class="hero-hp">${hero.hp}</div>
+                </div>
+            `;
+            card.onclick = () => openModal(hero);
+            heroList.appendChild(card);
+        });
+    }
+
+    // 弹窗
+    const modal = document.getElementById('heroModal');
+    function openModal(hero) {
+        document.getElementById('modalImg').src = hero.img;
+        document.getElementById('modalName').textContent = hero.name;
+        
+        const factionEl = document.getElementById('modalFaction');
+        const factionText = hero.faction=='shen'?'神':hero.faction=='mo'?'魔':hero.faction=='jin'?'晋':hero.faction;
+        factionEl.className = `modal-faction ${hero.faction.toLowerCase()}`;
+        factionEl.textContent = factionText;
+        
+        document.getElementById('modalServer').textContent = hero.server;
+        document.getElementById('modalHp').textContent = hero.hp;
+
+        const skillBox = document.getElementById('modalSkills');
+        skillBox.innerHTML = hero.skills.map(s => `
+            <div class="skill-title">${s.title}</div>
+            <div class="skill-desc">${s.desc}</div>
+        `).join('');
+
+        modal.style.display = 'flex';
+    }
+
+    // 关闭弹窗
+    document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+
+    // 监听搜索筛选
+    searchInput.addEventListener('input', renderHeroes);
+    filterFaction.addEventListener('change', renderHeroes);
+    filterServer.addEventListener('change', renderHeroes);
+
+    // 初始渲染
+    renderHeroes();
+</script>
+</body>
+</html>
